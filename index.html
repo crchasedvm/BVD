@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to BVD in NZ Dairy Cattle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cool Blues & Greens -->
+    <!-- Application Structure Plan: The application uses a single-page dashboard layout with a fixed sidebar for direct access to key topics. This structure is ideal for a complex disease like BVD, allowing users (farmers, vets) to focus on their immediate concern, whether it's understanding the PI threat, implementing a testing strategy, or improving biosecurity. The core of the user flow is built around understanding the Persistently Infected (PI) animal, with interactive diagrams designed to make this abstract concept concrete and understandable. The goal is to guide the user from understanding the problem (the PI) to the solution (testing and biosecurity). -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: How a PI is created -> Goal: Explain a complex biological process -> Viz: Interactive HTML/CSS Diagram -> Interaction: Click steps of gestation -> Justification: Simplifies the critical concept of fetal infection timing, which is the cornerstone of BVD control. Far more effective than text alone. -> Library/Method: HTML/CSS/JS.
+        - Report Info: Economic Costs of BVD -> Goal: Compare different loss types -> Viz: Bar Chart -> Interaction: Hover for exact values -> Justification: Visually demonstrates that reproductive loss is the largest economic driver, focusing farmer attention on the key issue. -> Library: Chart.js (Canvas).
+        - Report Info: BVD Control Strategy -> Goal: Guide user through a process -> Viz: Numbered step-by-step visual guide -> Interaction: N/A (informational flow) -> Justification: Presents the national BVDfree strategy as a clear, actionable sequence of events. -> Library/Method: HTML/CSS.
+        - Report Info: Clinical Signs -> Goal: Inform/Organize -> Viz: Interactive Cards -> Interaction: Click to reveal details -> Justification: Allows users to quickly see the wide range of BVD impacts, from obvious to subtle. -> Library/Method: HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            background-color: #1E40AF; /* Darker Blue */
+            color: #F9FAFB;
+            transform: translateX(4px);
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .pi-stage {
+            transition: all 0.3s ease;
+        }
+        .pi-stage.active {
+            border-color: #1D4ED8;
+            background-color: #DBEAFE;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-blue-900 text-white p-4 md:p-6 sticky top-0 md:h-screen">
+            <h1 class="text-2xl font-bold mb-6 text-center md:text-left">BVD Guide</h1>
+            <nav id="navigation">
+                <a href="#dashboard" class="nav-link active flex items-center p-3 my-1 rounded-lg hover:bg-blue-800">
+                    <span class="mr-3">📈</span> Dashboard
+                </a>
+                <a href="#pi-threat" class="nav-link flex items-center p-3 my-1 rounded-lg hover:bg-blue-800">
+                    <span class="mr-3">🐮</span> The PI Threat
+                </a>
+                <a href="#impact" class="nav-link flex items-center p-3 my-1 rounded-lg hover:bg-blue-800">
+                    <span class="mr-3">💸</span> Clinical Impact
+                </a>
+                <a href="#control" class="nav-link flex items-center p-3 my-1 rounded-lg hover:bg-blue-800">
+                    <span class="mr-3">🔬</span> Diagnosis & Control
+                </a>
+                <a href="#biosecurity" class="nav-link flex items-center p-3 my-1 rounded-lg hover:bg-blue-800">
+                    <span class="mr-3">🛡️</span> Biosecurity
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">BVD: The Silent Thief</h2>
+                <p class="text-gray-600 mb-8">An overview of Bovine Viral Diarrhoea (BVD) in New Zealand, a costly and complex disease driven by a small number of highly infectious animals.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="font-bold text-xl text-blue-700 mb-2">The Core Problem: PIs</h3>
+                        <p class="text-gray-600">The entire BVD problem is driven by Persistently Infected (PI) animals. These are virus factories, shedding millions of viral particles daily and infecting the herd.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="font-bold text-xl text-green-700 mb-2">Widespread & Costly</h3>
+                        <p class="text-gray-600">BVD costs the NZ dairy industry an estimated <span class="font-bold">$150 million</span> annually through reproductive loss, reduced milk production, and animal deaths.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="font-bold text-xl text-amber-700 mb-2">Controllable Disease</h3>
+                        <p class="text-gray-600">Unlike many diseases, BVD can be effectively controlled and even eradicated from a farm by identifying and removing the source: the PI animals.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">The Economic Drain of BVD</h3>
+                    <p class="text-center text-gray-600 mb-6">The costs of BVD are often hidden, manifesting as poor reproductive performance and ill thrift. The chart below breaks down the estimated annual cost for an average NZ dairy herd with an active BVD infection.</p>
+                    <div class="chart-container">
+                        <canvas id="bvdCostChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- The PI Threat Section -->
+            <section id="pi-threat" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Understanding the PI Threat</h2>
+                <p class="text-gray-600 mb-8">A Persistently Infected (PI) animal is not just sick; its body thinks the BVD virus is a normal part of itself. This section explains how these crucial animals are created. The timing of infection during pregnancy is everything.</p>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4 text-center">How a PI Calf is Created</h3>
+                    <p class="text-center text-gray-600 mb-6">Click on the different stages of pregnancy below to see how the outcome of BVD infection changes for the unborn calf.</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-6 items-center">
+                        <!-- Interactive Stages -->
+                        <div class="w-full md:w-1/3 space-y-4">
+                            <div class="pi-stage border-2 p-4 rounded-lg cursor-pointer" data-stage="early">
+                                <h4 class="font-bold">Infection: Day 0-40 of Gestation</h4>
+                                <p class="text-sm">Infection in the first month.</p>
+                            </div>
+                            <div class="pi-stage border-2 p-4 rounded-lg cursor-pointer active" data-stage="critical">
+                                <h4 class="font-bold">Infection: Day 40-120 of Gestation</h4>
+                                <p class="text-sm">The critical window for PI creation.</p>
+                            </div>
+                            <div class="pi-stage border-2 p-4 rounded-lg cursor-pointer" data-stage="late">
+                                <h4 class="font-bold">Infection: After Day 120 of Gestation</h4>
+                                <p class="text-sm">Infection in mid-to-late pregnancy.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Explanation Box -->
+                        <div id="pi-explanation" class="w-full md:w-2/3 p-6 bg-blue-50 rounded-lg">
+                            <!-- Content updated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clinical Impact Section -->
+            <section id="impact" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Clinical Impact & Signs</h2>
+                <p class="text-gray-600 mb-8">BVD infection can look like many other diseases, or it can be completely invisible. The impact depends on the animal's age, immune status, and whether a PI is present in the herd. Click the cards to learn more.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Reproductive Failure</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>This is the biggest cost. Includes abortions, embryonic death (returns to service), stillbirths, and the creation of PI calves. A classic sign is a condensed calving pattern followed by a long tail of late calvers.</p>
+                        </div>
+                    </div>
+                    <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Ill Thrift & Poor Growth</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>Transiently infected animals and PI calves often show poor growth rates, rough coats, and are generally "poor-doers." They are more susceptible to other diseases like pneumonia and scours.</p>
+                        </div>
+                    </div>
+                    <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Reduced Milk Production</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>Cows that are transiently infected can suffer a temporary drop in milk production. The overall herd production is also lowered due to reproductive inefficiency and general poor health.</p>
+                        </div>
+                    </div>
+                    <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Congenital Defects</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>Infection during mid-to-late gestation can lead to calves born with brain damage (e.g., cerebellar hypoplasia, causing them to be "wobbly"), cataracts, or other developmental issues.</p>
+                        </div>
+                    </div>
+                    <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Mucosal Disease</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>A rare but fatal condition that ONLY occurs in PI animals. If a PI gets super-infected with a different BVD strain, it develops severe, untreatable ulcers throughout the gut, leading to rapid death.</p>
+                        </div>
+                    </div>
+                     <div class="impact-card bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow">
+                        <h3 class="font-bold text-xl mb-2">Immunosuppression</h3>
+                        <div class="impact-details hidden text-gray-600 mt-2">
+                            <p>BVD virus suppresses the immune system, making the entire herd more vulnerable to other common diseases like mastitis, lameness, and respiratory infections. This is a major hidden cost.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diagnosis & Control Section -->
+            <section id="control" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Diagnosis & Control Strategy</h2>
+                <p class="text-gray-600 mb-8">The BVDfree New Zealand programme provides a clear pathway to control. The strategy is simple: find the PIs, remove them, and keep them out.</p>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 text-center">The Path to BVD Freedom</h3>
+                    <div class="space-y-8">
+                        <!-- Step 1 -->
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">1</div>
+                            <div>
+                                <h4 class="text-xl font-bold">Screen the Herd</h4>
+                                <p class="text-gray-600">Start with a bulk tank milk test or a blood test on a sample group of unvaccinated youngstock. This gives a "yes" or "no" answer to whether BVD virus is actively circulating in your herd.</p>
+                            </div>
+                        </div>
+                        <!-- Step 2 -->
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">2</div>
+                            <div>
+                                <h4 class="text-xl font-bold">Find the PI(s)</h4>
+                                <p class="text-gray-600">If the screen is positive, the hunt begins. This involves blood testing individual cows or pooling milk samples to find the one(s) with the virus. Your vet will develop a testing strategy based on your herd setup.</p>
+                            </div>
+                        </div>
+                        <!-- Step 3 -->
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">3</div>
+                            <div>
+                                <h4 class="text-xl font-bold">Test All Calves</h4>
+                                <p class="text-gray-600">Since PIs are born, not made, every calf must be tested to ensure it's not a new PI. This is easily done with an ear notch tissue sample taken at tagging. This is the most important step for long-term control.</p>
+                            </div>
+                        </div>
+                        <!-- Step 4 -->
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">4</div>
+                            <div>
+                                <h4 class="text-xl font-bold">Remove PIs Immediately</h4>
+                                <p class="text-gray-600">Any animal confirmed as a PI must be culled as soon as possible. They cannot be treated and will never recover. Keeping them on farm guarantees the BVD problem will continue.</p>
+                            </div>
+                        </div>
+                        <!-- Step 5 -->
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">5</div>
+                            <div>
+                                <h4 class="text-xl font-bold">Implement a Vaccination Firewall</h4>
+                                <p class="text-gray-600">Once the herd is clear of PIs, vaccination acts as an insurance policy. It protects your breeding animals from infection during the critical pregnancy window, preventing the creation of new PIs if the virus is accidentally reintroduced from a neighbour or bought-in stock.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Biosecurity Section -->
+            <section id="biosecurity" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Keeping BVD Out: Biosecurity</h2>
+                <p class="text-gray-600 mb-8">Once your herd is BVD-free, keeping it that way is paramount. Biosecurity is your insurance policy against re-infection.</p>
+                
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Your Farm's BVD Firewall</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                            <span class="text-2xl">🚧</span>
+                            <div>
+                                <h4 class="font-bold">Boundary Fences</h4>
+                                <p class="text-gray-600">The biggest risk is nose-to-nose contact with neighbour's cattle. Double-fencing on boundaries is the gold standard. Ensure all fences are stock-proof.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                            <span class="text-2xl">🚚</span>
+                            <div>
+                                <h4 class="font-bold">Test All Incoming Stock</h4>
+                                <p class="text-gray-600">Never assume an animal is BVD-free. Any purchased, leased, or returning animal (including bulls) must be tested for BVD and confirmed negative before they join the main herd.</p>
+                            </div>
+                        </li>
+                         <li class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                            <span class="text-2xl">💉</span>
+                            <div>
+                                <h4 class="font-bold">Strategic Vaccination</h4>
+                                <p class="text-gray-600">Vaccination acts as a safety net. It won't cure a PI, but it can protect your breeding cows from becoming infected and creating new PIs if the virus is accidentally introduced.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+                            <span class="text-2xl">📋</span>
+                            <div>
+                                <h4 class="font-bold">Know Your Status</h4>
+                                <p class="text-gray-600">Participate in the BVDfree programme. Maintain annual screening to confirm your herd remains free of infection. This provides peace of mind and valuable information for stock trading.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navigationLinks = document.querySelectorAll('#navigation .nav-link');
+    const contentSections = document.querySelectorAll('.content-section');
+    const piStages = document.querySelectorAll('.pi-stage');
+    const piExplanation = document.getElementById('pi-explanation');
+    const impactCards = document.querySelectorAll('.impact-card');
+
+    const piExplanations = {
+        'early': `
+            <h3 class="text-xl font-bold mb-2 text-red-700">Outcome: Embryonic Death / Abortion</h3>
+            <p class="text-gray-700">If a pregnant cow is infected with BVD virus in the first 40 days of gestation, the virus typically kills the developing embryo. The cow will likely reabsorb the embryo and simply return to service, often being recorded as having a conception failure.</p>
+        `,
+        'critical': `
+            <h3 class="text-xl font-bold mb-2 text-blue-700">Outcome: A Persistently Infected (PI) Calf</h3>
+            <p class="text-gray-700">This is the danger zone. Between day 40 and 120, the fetal calf's immune system is developing. If the BVD virus infects it during this window, the calf's body accepts the virus as 'self' and does not mount an immune response. The calf is born infected and remains infected for its entire life, constantly shedding virus. <strong>This is how PIs are made.</strong></p>
+        `,
+        'late': `
+            <h3 class="text-xl font-bold mb-2 text-green-700">Outcome: A Normal, Immune Calf</h3>
+            <p class="text-gray-700">After day 120, the fetal immune system is competent. If the mother is infected, the calf's immune system will recognise the BVD virus as foreign, fight it off, and develop antibodies. The calf is born healthy and immune to that strain of BVD. It is NOT a PI.</p>
+        `
+    };
+
+    function updatePiExplanation(stageKey) {
+        piExplanation.innerHTML = piExplanations[stageKey];
+    }
+
+    function showSection(hash) {
+        const targetId = hash.substring(1);
+        
+        contentSections.forEach(section => {
+            section.classList.toggle('active', section.id === targetId);
+        });
+
+        navigationLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === hash);
+        });
+    }
+
+    navigationLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetHash = this.getAttribute('href');
+            history.pushState(null, null, targetHash);
+            showSection(targetHash);
+        });
+    });
+    
+    window.addEventListener('popstate', () => {
+        showSection(window.location.hash || '#dashboard');
+    });
+
+    piStages.forEach(stage => {
+        stage.addEventListener('click', function() {
+            piStages.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+            const stageKey = this.getAttribute('data-stage');
+            updatePiExplanation(stageKey);
+        });
+    });
+
+    impactCards.forEach(card => {
+        card.addEventListener('click', function () {
+            const details = this.querySelector('.impact-details');
+            details.classList.toggle('hidden');
+            this.classList.toggle('bg-green-50');
+        });
+    });
+
+    // Initial setup
+    showSection(window.location.hash || '#dashboard');
+    updatePiExplanation('critical');
+
+    const bvdCostCtx = document.getElementById('bvdCostChart').getContext('2d');
+    const bvdCostChart = new Chart(bvdCostCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Reproductive Loss', 'Reduced Milk Yield', 'Ill Thrift & Deaths', 'Treatment Costs'],
+            datasets: [{
+                label: 'Estimated Annual Cost ($)',
+                data: [25000, 12000, 8000, 3000],
+                backgroundColor: [
+                    'rgba(29, 78, 216, 0.7)',
+                    'rgba(30, 100, 220, 0.7)',
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(147, 197, 253, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(29, 78, 216, 1)',
+                    'rgba(30, 100, 220, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(147, 197, 253, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Breakdown of BVD Costs in an Infected Herd'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.x !== null) {
+                                label += new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD' }).format(context.parsed.x);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Cost ($NZD)'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+</body>
+</html>
